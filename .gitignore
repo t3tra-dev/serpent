@@ -1,0 +1,15 @@
+build/
+dist/
+
+*.so
+*.dylib
+*.dll
+*.exe
+*.pdb
+*.lib
+*.a
+*.o
+*.obj
+
+FRAMEWORK.md
+LOADMAP.md
