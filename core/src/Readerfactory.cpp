@@ -5,21 +5,20 @@
 #include "serpent/core/IProcessReader.h"
 #include "serpent/core/ReaderFactory.h"
 
-namespace serpent {
+namespace serpent::core {
 
 using create_reader_t = IProcessReader*();
 
-std::unique_ptr<IProcessReader> create_reader_for_current_os() {
-    // Determine the library name based on the current OS
+std::unique_ptr<core::IProcessReader> create_reader_for_current_os() {
     std::string lib_name;
-    std::string suffix = ".so";
+    std::string suffix;
     
     #if defined(__linux__)
         lib_name = "serpent_reader_linux";
         suffix = ".so";
     #elif defined(__APPLE__)
         lib_name = "serpent_reader_macos";
-        suffix = ".so";  // Use .so for macOS
+        suffix = ".so";
     #elif defined(_WIN32)
         lib_name = "serpent_reader_windows";
         suffix = ".dll";
@@ -43,4 +42,4 @@ std::unique_ptr<IProcessReader> create_reader_for_current_os() {
     return std::unique_ptr<IProcessReader>(fn());
 }
 
-} // namespace serpent
+} // namespace serpent::core

@@ -4,6 +4,7 @@
 #include "serpent/core/IProcessReader.h"
 
 namespace serpent {
+namespace core {
 
 /**
  * Loads the ABI plugin for the specified Python version.
@@ -14,4 +15,5 @@ namespace serpent {
  */
 std::unique_ptr<IPythonABI> create_abi_for_version(int major, int minor, IProcessReader* reader);
 
+} // namespace core
 } // namespace serpent

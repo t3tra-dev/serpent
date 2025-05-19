@@ -1,4 +1,5 @@
 #include "serpent/core/IProcessReader.h"
+#include "serpent/core/MemRegion.h"
 #include <mach/mach.h>
 #include <mach/mach_error.h>
 #include <mach/mach_vm.h>
@@ -6,7 +7,7 @@
 #include <vector>
 #include <iostream>
 
-namespace serpent {
+namespace serpent::core {
 
 class MacOSReader final : public IProcessReader {
 private:
@@ -64,28 +65,28 @@ public:
         return (kr == KERN_SUCCESS && bytes_read == len);
     }
 
-    std::vector<MemRegion> regions() override {
-        std::vector<MemRegion> result;
+    std::vector<core::MemRegion> regions() override {
+        std::vector<core::MemRegion> result;
         
         if (_task == MACH_PORT_NULL) {
             return result;
         }
         
-        mach_vm_address_t address = 0;
-        mach_vm_size_t size = 0;
+        mach_vm_address_t current_address = 0;
+        mach_vm_size_t current_size = 0;
         
         while (true) {
             // Retrieve the next memory region
             mach_msg_type_number_t count = VM_REGION_BASIC_INFO_COUNT_64;
-            vm_region_basic_info_data_64_t info;
+            vm_region_basic_info_data_64_t region_info;
             mach_port_t object_name = MACH_PORT_NULL;
             
             kern_return_t kr = mach_vm_region(
                 _task,
-                &address,
-                &size,
+                &current_address, // Use current_address here
+                &current_size,    // Use current_size here
                 VM_REGION_BASIC_INFO_64,
-                reinterpret_cast<vm_region_info_t>(&info),
+                reinterpret_cast<vm_region_info_t>(&region_info),
                 &count,
                 &object_name);
                 
@@ -94,18 +95,20 @@ public:
             }
             
             // Convert protection flags to Linux-style format
-            uint32_t prot = 0;
-            if (info.protection & VM_PROT_READ) prot |= 1;
-            if (info.protection & VM_PROT_WRITE) prot |= 2;
-            if (info.protection & VM_PROT_EXECUTE) prot |= 4;
+            uint32_t protection_flags = 0;
+            if (region_info.protection & VM_PROT_READ) protection_flags |= 1;
+            if (region_info.protection & VM_PROT_WRITE) protection_flags |= 2;
+            if (region_info.protection & VM_PROT_EXECUTE) protection_flags |= 4;
             
-            result.push_back({address, address + size, prot});
+            // Use the address and size obtained from mach_vm_region
+            result.push_back({current_address, current_address + current_size, current_size, protection_flags, ""});
             
             // Move to the next region
-            address += size;
+            current_address += current_size;
             
             // Prevent infinite loops as a safeguard
-            if (result.size() > 10000) {
+            if (result.size() > 10000) { // Arbitrary limit to prevent runaway loops
+                std::cerr << "Warning: Exceeded maximum region count in MacOSReader::regions()" << std::endl;
                 break;
             }
         }
@@ -115,8 +118,8 @@ public:
 };
 
 // External C factory function (for use with dlopen)
-extern "C" serpent::IProcessReader* create_reader() { 
+extern "C" IProcessReader* create_reader() {
     return new MacOSReader; 
 }
 
-} // namespace serpent
+} // namespace serpent::core
