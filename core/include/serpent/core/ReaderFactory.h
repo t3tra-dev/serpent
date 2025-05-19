@@ -2,7 +2,7 @@
 #include <memory>
 #include "serpent/core/IProcessReader.h"
 
-namespace serpent {
+namespace serpent::core {
 
 /**
  * Creates a ProcessReader suitable for the current OS.
@@ -11,4 +11,4 @@ namespace serpent {
  */
 std::unique_ptr<IProcessReader> create_reader_for_current_os();
 
-} // namespace serpent
+} // namespace serpent::core

@@ -1,0 +1,6 @@
+[submodule "external/zstd"]
+	path = external/zstd
+	url = https://github.com/facebook/zstd.git
+[submodule "external/robin-hood-hashing"]
+	path = external/robin-hood-hashing
+	url = https://github.com/martinus/robin-hood-hashing.git

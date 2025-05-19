@@ -1,14 +1,9 @@
 #pragma once
 #include <cstdint>
 #include <vector>
+#include "MemRegion.h"
 
-namespace serpent {
-
-struct MemRegion {
-    uint64_t start;
-    uint64_t end;
-    uint32_t prot;   // r/w/x bits
-};
+namespace serpent::core {
 
 class IProcessReader {
 public:
@@ -19,4 +14,4 @@ public:
     virtual std::vector<MemRegion> regions() = 0;
 };
 
-} // namespace serpent
+} // namespace serpent::core

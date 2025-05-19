@@ -14,3 +14,8 @@ dist/
 FRAMEWORK.md
 LOADMAP.md
 PHASE*.md
+
+_REF_CPY*/*
+
+.venv/*
+.venv*/*

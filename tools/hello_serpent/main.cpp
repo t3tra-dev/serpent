@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
         }
 
         std::cout << "Attaching to process " << pid << "...\n";
-        auto reader = serpent::create_reader_for_current_os();
+        auto reader = serpent::core::create_reader_for_current_os(); // Corrected namespace
         
         if (!reader) {
             std::cerr << "Error: Failed to create reader plugin for the OS\n";
@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
         }
         
         std::cout << "Loading Python " << py_major << "." << py_minor << " ABI...\n";
-        auto abi = serpent::create_abi_for_version(py_major, py_minor, reader.get());
+        auto abi = serpent::core::create_abi_for_version(py_major, py_minor, reader.get()); // Corrected namespace
         
         if (!abi) {
             std::cerr << "Error: Failed to load ABI plugin for Python " << py_major << "." << py_minor << "\n";
@@ -50,18 +50,19 @@ int main(int argc, char* argv[])
         }
         
         std::cout << "Analyzing object at address 0x" << std::hex << addr << "...\n";
-        std::cout << "Type name: " << abi->type_name(addr) << "\n";
+        // Corrected to use the actual method name from IPythonABI.h
+        std::cout << "Type name: " << abi->get_type_name(addr, *reader) << "\n"; 
         
         // For reference: In the future, memory region information can also be displayed as follows
         std::cout << "\nMemory regions:\n";
         auto regions = reader->regions();
         for (size_t i = 0; i < std::min(regions.size(), size_t(10)); ++i) {
-            std::cout << std::hex << "0x" << regions[i].start << " - 0x" << regions[i].end 
+            std::cout << std::hex << "0x" << regions[i].start << " - 0x" << regions[i].end // Corrected field names
                       << " [" 
-                      << (regions[i].prot & 1 ? "r" : "-") 
-                      << (regions[i].prot & 2 ? "w" : "-") 
-                      << (regions[i].prot & 4 ? "x" : "-") 
-                      << "]\n";
+                      << (regions[i].permissions & 1 ? "r" : "-") // Corrected field name
+                      << (regions[i].permissions & 2 ? "w" : "-") // Corrected field name
+                      << (regions[i].permissions & 4 ? "x" : "-") // Corrected field name
+                      << "] " << regions[i].name << "\n"; // Added name field
         }
         
         if (regions.size() > 10) {
