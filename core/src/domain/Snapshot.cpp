@@ -88,7 +88,7 @@ std::unique_ptr<Snapshot> Snapshot::deserialize(const std::string& filepath) {
 
         std::vector<char> compressed_buffer(compressed_size);
         ifs.read(compressed_buffer.data(), compressed_size);
-         if (ifs.gcount() != compressed_size) {
+         if (ifs.gcount() != static_cast<std::streamsize>(compressed_size)) {
              std::cerr << "Failed to read compressed snapshot data." << std::endl;
              return nullptr;
         }

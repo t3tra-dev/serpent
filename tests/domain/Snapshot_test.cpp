@@ -2,6 +2,7 @@
 #include <gmock/gmock.h>
 #include <fstream>
 #include <cstdio>
+#include <unistd.h>
 
 #include "serpent/domain/Snapshot.h"
 #include "serpent/domain/ObjectGraph.h"
@@ -9,14 +10,16 @@
 
 // Helper function to create a temporary filepath
 std::string temp_filepath() {
-    // Using tmpnam is generally unsafe, but for a test where the file is immediately used and deleted,
-    // and the risk of collision is low, it might be acceptable.
-    // A better approach would be to use mkstemp or a library function if available and portable.
-    char name_buffer[L_tmpnam];
-    if (std::tmpnam(name_buffer) == nullptr) {
-        throw std::runtime_error("Failed to create temporary file name.");
+    char name_template[] = "/tmp/serpent_test_XXXXXX";
+    int fd = mkstemp(name_template);
+    if (fd == -1) {
+        // perror("mkstemp");
+        throw std::runtime_error("Failed to create temporary file name with mkstemp.");
     }
-    return std::string(name_buffer);
+    close(fd);
+    std::remove(name_template);
+
+    return std::string(name_template);
 }
 
 class SnapshotTest : public ::testing::Test {

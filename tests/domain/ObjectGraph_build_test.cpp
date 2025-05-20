@@ -50,18 +50,18 @@ TEST_F(ObjectGraphBuildTest, Build_EmptyMemoryRegions_ReturnsEmptyGraph) {
 }
 
 TEST_F(ObjectGraphBuildTest, Build_SingleRegionNoObjects_ReturnsEmptyGraph) {
-    // サイズを小さく設定して処理速度を向上
-    regions.push_back(make_region(0x1000, 0x100)); // 256バイトの小さな領域に変更
-    // regions()は呼び出されないはず（memory_regionsを明示的に渡すため）
+    // Set a smaller size to improve processing speed
+    regions.push_back(make_region(0x1000, 0x100)); // Changed to a small 256-byte region
+    // regions() should not be called (since memory_regions is explicitly passed)
 
     // Expect ABI calls for PyObject_HEAD size
     EXPECT_CALL(mock_abi, get_pyobject_head_size()).WillRepeatedly(Return(16)); // Example size
 
-    // 明示的なEXPECT_CALLを追加してread呼び出しの回数を制限
-    // 8バイト単位にアライメントするため、256バイトの領域では最大32回のread呼び出し
+    // Add explicit EXPECT_CALL to limit the number of read calls
+    // To align to 8-byte units, a 256-byte region allows at most 32 read calls
     EXPECT_CALL(mock_reader, read(_,_,_)).Times(testing::AtMost(32)).WillRepeatedly(Return(false));
     
-    // ob_type_from_head_bufferは一度も呼び出されないはず（readが常に失敗するため）
+    // ob_type_from_head_buffer should never be called (since read always fails)
     EXPECT_CALL(mock_abi, get_ob_type_from_head_buffer(_, _)).Times(0);
 
     bool success = graph.build(mock_reader, mock_abi, regions);
